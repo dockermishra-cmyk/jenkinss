@@ -1,67 +1,67 @@
 pipeline {
     agent any
 
-    tools {
-        nodejs 'NodeJS' // This name should match the name you provided in Global Tool Configuration
+    environment {
+        PROJECT_DIR = "C:/mongodb-crud"
     }
 
     stages {
-        stage('Checkout') {
-            steps {
-                git 'https://github.com/dockermishra-cmyk/jenkinss'
-            }
-        }
 
-        stage('Install Dependencies') {
+        stage('Check Project Files') {
             steps {
-                script {
-                    // Install Node.js dependencies using npm
-                    sh 'npm install'
+                dir("${PROJECT_DIR}") {
+                    bat 'dir'
                 }
             }
         }
 
-        stage('Build Docker Image') {
+        stage('Stop Old Containers') {
             steps {
-                script {
-                    // Build Docker Image using the Dockerfile
-                    sh 'docker build -t mongodb-crud .'
+                dir("${PROJECT_DIR}") {
+                    bat 'docker compose down || exit 0'
                 }
             }
         }
 
-        stage('Run Docker Compose') {
+        stage('Build Containers') {
             steps {
-                script {
-                    // Run Docker Compose to start the services
-                    sh 'docker-compose up -d'
+                dir("${PROJECT_DIR}") {
+                    bat 'docker compose build'
                 }
             }
         }
 
-        stage('Run Tests') {
+        stage('Run Containers') {
             steps {
-                script {
-                    // Run tests if you have them
-                    sh 'npm test'
+                dir("${PROJECT_DIR}") {
+                    bat 'docker compose up -d'
                 }
             }
         }
 
-        stage('Clean Up') {
+        stage('Check Running Containers') {
             steps {
-                script {
-                    // Shut down Docker containers after use
-                    sh 'docker-compose down'
-                }
+                bat 'docker ps'
+            }
+        }
+
+        stage('Health Check') {
+            steps {
+                // Wait 15 seconds without using "timeout"
+                bat 'ping 127.0.0.1 -n 15 > nul'
+               
+                // Test app
+                bat 'curl http://localhost:3000'
             }
         }
     }
 
     post {
-        always {
-            // Clean up Docker images and resources if needed
-            sh 'docker system prune -f'
+        success {
+            echo 'Deployment Successful!'
+        }
+        failure {
+            echo 'Deployment Failed!'
         }
     }
 }
