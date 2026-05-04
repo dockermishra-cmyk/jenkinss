@@ -1,16 +1,23 @@
 pipeline {
     agent any
 
-    environment {
-        // Set the NodeJS version if needed, e.g., 'nodejs-lts'
-        NODE_HOME = tool name: 'NodeJS', type: 'NodeJSInstallation'
+    tools {
+        nodejs 'NodeJS' // This name should match the name you provided in Global Tool Configuration
     }
 
     stages {
         stage('Checkout') {
             steps {
-                // Checkout the code from the GitHub repository
-                git 'https://github.com/yourusername/your-repository-name.git'
+                git 'https://github.com/dockermishra-cmyk/jenkinss'
+            }
+        }
+
+        stage('Install Dependencies') {
+            steps {
+                script {
+                    // Install Node.js dependencies using npm
+                    sh 'npm install'
+                }
             }
         }
 
@@ -32,19 +39,10 @@ pipeline {
             }
         }
 
-        stage('Install Dependencies') {
-            steps {
-                script {
-                    // Install Node.js dependencies
-                    sh 'npm install'
-                }
-            }
-        }
-
         stage('Run Tests') {
             steps {
                 script {
-                    // Run your tests, if any (e.g., `npm test`)
+                    // Run tests if you have them
                     sh 'npm test'
                 }
             }
